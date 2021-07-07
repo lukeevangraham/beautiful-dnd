@@ -6,6 +6,10 @@ import { DragDropContext } from "react-beautiful-dnd";
 import initialData from "./initial-data";
 import Column from "./column";
 
+const Container = styled.div`
+  display: flex;
+`;
+
 const App = () => {
   let [data, setData] = useState(initialData);
 
@@ -22,19 +26,15 @@ const App = () => {
   //   document.body.style.backgroundColor = `rgba(153, 141, 217, ${opacity})`;
   // };
 
-  const Container = styled.div`
-    display: flex;
-  `;
-
   const onDragEnd = (result) => {
-    document.body.style.color = "inherit";
-    document.body.style.backgroundColor = "inherit";
-
     const { destination, source, draggableId } = result;
 
     if (!destination) {
       return;
     }
+
+    document.body.style.color = "inherit";
+    document.body.style.backgroundColor = "inherit";
 
     if (
       destination.droppableId === source.droppableId &&
@@ -65,17 +65,17 @@ const App = () => {
       };
 
       setData(newState);
+      return;
     }
 
     // Moving from one list to another
     const startTaskIds = Array.from(start.taskIds);
-
     startTaskIds.splice(source.index, 1);
     const newStart = {
       ...start,
       taskIds: startTaskIds,
     };
-    
+
     const finishTaskIds = Array.from(finish.taskIds);
     finishTaskIds.splice(destination.index, 0, draggableId);
     const newFinish = {
