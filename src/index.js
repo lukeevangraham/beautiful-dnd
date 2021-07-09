@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import "@atlaskit/css-reset";
 import styled from "styled-components";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from "./initial-data";
 import Column from "./column";
 
@@ -41,7 +41,7 @@ const App = () => {
       homeIndex: null,
     });
 
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
     if (!destination) {
       return;
@@ -54,6 +54,19 @@ const App = () => {
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
+      return;
+    }
+
+    if (type === "column") {
+      const newColumOrder = Array.from(data.columnOrder);
+      newColumOrder.splice(source.index, 1);
+      newColumOrder.splice(destination.index, 0, draggableId);
+
+      const newState = {
+        ...data,
+        columnOrder: newColumOrder,
+      };
+      setData(newState);
       return;
     }
 
@@ -110,16 +123,29 @@ const App = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
-      <Container>
-        {data.columnOrder.map((columnId, index) => {
-          const column = data.columns[columnId];
-          const tasks = column.taskIds.map((taskId) => data.tasks[taskId]);
+      <Droppable droppableId="all-columns" direction="horizontal" type="column">
+        {(provided) => (
+          <Container {...provided.droppableProps} ref={provided.innerRef}>
+            {data.columnOrder.map((columnId, index) => {
+              const column = data.columns[columnId];
+              const tasks = column.taskIds.map((taskId) => data.tasks[taskId]);
 
-          const isDropDisabled = index < data.homeIndex;
+              const isDropDisabled = index < data.homeIndex;
 
-          return <Column key={column.id} column={column} tasks={tasks} isDropDisabled={isDropDisabled} />;
-        })}
-      </Container>
+              return (
+                <Column
+                  key={column.id}
+                  column={column}
+                  tasks={tasks}
+                  isDropDisabled={isDropDisabled}
+                  index={index}
+                />
+              );
+            })}
+            {provided.placeholder}
+          </Container>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 };
